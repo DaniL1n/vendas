@@ -1,4 +1,5 @@
-# python -m streamlit run app.py
+## ALUNO: DANILO MELO DE GUSMÃO
+## MBAIA03
 
 # Importação das bibliotecas necessárias
 import streamlit as st

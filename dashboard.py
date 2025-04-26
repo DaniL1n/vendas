@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 st.title("📊 Dashboard de Vendas de Produtos")
 
 # Caminho do arquivo CSV (assumimos que está na mesma pasta)
-csv_file = 'Product_Sales_Data.csv'
+csv_file = 'sales_data.csv'
 
 try:
     # Lê o arquivo CSV em um DataFrame

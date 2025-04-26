@@ -3,17 +3,15 @@
 # Importação das bibliotecas necessárias
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import os
+import matplotlib.pyplot as plt
 
 # Título do dashboard
 st.title("📊 Dashboard de Vendas de Produtos")
 
-# Caminho do arquivo CSV na mesma pasta
+# Caminho do arquivo CSV (assumimos que está na mesma pasta)
 csv_file = 'Product_Sales_Data.csv'
 
-# Verifica se o arquivo CSV existe na mesma pasta
-if os.path.exists(csv_file):
+try:
     # Lê o arquivo CSV em um DataFrame
     df = pd.read_csv(csv_file)
 
@@ -31,16 +29,18 @@ if os.path.exists(csv_file):
     selected_date_range = st.sidebar.date_input("Selecione o Período", [df['Date_Sold'].min(), df['Date_Sold'].max()])
 
     # Filtragem dos dados com base na seleção do usuário
-    filtered_df = df[(df['Category'].isin(selected_category)) & 
-                     (df['Product_Name'].isin(selected_product)) &
-                     (df['Date_Sold'] >= pd.to_datetime(selected_date_range[0])) & 
-                     (df['Date_Sold'] <= pd.to_datetime(selected_date_range[1]))]
+    filtered_df = df[
+        (df['Category'].isin(selected_category)) &
+        (df['Product_Name'].isin(selected_product)) &
+        (df['Date_Sold'] >= pd.to_datetime(selected_date_range[0])) &
+        (df['Date_Sold'] <= pd.to_datetime(selected_date_range[1]))
+    ]
 
     # Exibe os dados filtrados
     st.markdown("### 📄 Dados Filtrados")
     st.dataframe(filtered_df)
 
-    # Insights gerais em colunas
+    # Insights gerais
     st.markdown("## 📈 Insights Gerais")
     col1, col2 = st.columns(2)
 
@@ -52,40 +52,47 @@ if os.path.exists(csv_file):
 
     # Gráfico de Vendas por Produto
     st.markdown("### 🛒 Vendas por Produto")
-    sales_by_product = filtered_df.groupby('Product_Name')['Total_Sales'].sum().sort_values(ascending=False).reset_index()
-    fig_product = px.bar(sales_by_product, x='Product_Name', y='Total_Sales', color='Total_Sales', 
-                         color_continuous_scale='Blues', title="Vendas Totais por Produto")
-    st.plotly_chart(fig_product)
+    sales_by_product = filtered_df.groupby('Product_Name')['Total_Sales'].sum().sort_values(ascending=False)
+    fig, ax = plt.subplots(figsize=(10, 5))
+    sales_by_product.plot(kind='bar', ax=ax)
+    ax.set_ylabel("Total de Vendas (R$)")
+    ax.set_xlabel("Produto")
+    ax.set_title("Vendas Totais por Produto")
+    plt.xticks(rotation=45, ha='right')
+    st.pyplot(fig)
 
     # Gráfico de Vendas por Categoria
     st.markdown("### 🗂️ Vendas por Categoria")
-    sales_by_category = filtered_df.groupby('Category')['Total_Sales'].sum().sort_values(ascending=False).reset_index()
-    fig_category = px.bar(sales_by_category, x='Category', y='Total_Sales', color='Total_Sales', 
-                          color_continuous_scale='Greens', title="Vendas Totais por Categoria")
-    st.plotly_chart(fig_category)
+    sales_by_category = filtered_df.groupby('Category')['Total_Sales'].sum().sort_values(ascending=False)
+    fig2, ax2 = plt.subplots(figsize=(8, 4))
+    sales_by_category.plot(kind='bar', color='green', ax=ax2)
+    ax2.set_ylabel("Total de Vendas (R$)")
+    ax2.set_xlabel("Categoria")
+    ax2.set_title("Vendas Totais por Categoria")
+    plt.xticks(rotation=45, ha='right')
+    st.pyplot(fig2)
 
     # Evolução das Vendas ao Longo do Tempo
     st.markdown("### 📅 Evolução das Vendas ao Longo do Tempo")
-    sales_over_time = filtered_df.groupby('Date_Sold')['Total_Sales'].sum().reset_index()
-    fig_time = px.line(sales_over_time, x='Date_Sold', y='Total_Sales', markers=True, title="Total de Vendas ao Longo do Tempo")
-    st.plotly_chart(fig_time)
+    sales_over_time = filtered_df.groupby('Date_Sold')['Total_Sales'].sum()
+    fig3, ax3 = plt.subplots(figsize=(10, 5))
+    sales_over_time.plot(ax=ax3)
+    ax3.set_ylabel("Total de Vendas (R$)")
+    ax3.set_xlabel("Data")
+    ax3.set_title("Total de Vendas ao Longo do Tempo")
+    plt.xticks(rotation=45)
+    st.pyplot(fig3)
 
     # Preço Médio por Categoria
     st.markdown("### 💲 Preço Médio por Categoria")
-    avg_price_by_category = filtered_df.groupby('Category')['Price'].mean().sort_values(ascending=False).reset_index()
-    fig_avg_price = px.bar(avg_price_by_category, x='Category', y='Price', color='Price',
-                           color_continuous_scale='Oranges', title="Preço Médio por Categoria")
-    st.plotly_chart(fig_avg_price)
+    avg_price_by_category = filtered_df.groupby('Category')['Price'].mean().sort_values(ascending=False)
+    fig4, ax4 = plt.subplots(figsize=(8, 4))
+    avg_price_by_category.plot(kind='bar', color='orange', ax=ax4)
+    ax4.set_ylabel("Preço Médio (R$)")
+    ax4.set_xlabel("Categoria")
+    ax4.set_title("Preço Médio por Categoria")
+    plt.xticks(rotation=45, ha='right')
+    st.pyplot(fig4)
 
-    # Explicação do Streamlit
-    st.markdown("## ℹ️ Sobre o Streamlit")
-    st.write("""
-    **Streamlit** é uma biblioteca de Python de código aberto que facilita a criação de dashboards e aplicações de dados 
-    de maneira rápida e interativa. Este app utiliza:
-
-    - `st.title()`, `st.markdown()`, `st.dataframe()`, `st.sidebar` para layout e filtros
-    - `st.metric()` para KPIs
-    - `plotly.express` para gráficos interativos
-    """)
-else:
-    st.error(f"Arquivo '{csv_file}' não encontrado. Por favor, coloque o arquivo na mesma pasta que este script.")
+except FileNotFoundError:
+    st.error(f"❌ Arquivo '{csv_file}' não encontrado. Por favor, coloque o arquivo na mesma pasta que este script.")
